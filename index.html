@@ -1,0 +1,267 @@
+<!-- saved from url=(0055)https://pjflanagan.github.io/HTML5CanvasAnimations/ani2 -->
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <link rel="icon" href="https://pjflanagan.github.io/HTML5CanvasAnimations/favicon.ico">
+    <title>Ubuntu</title>
+    
+    <style>
+    * { margin: 0; padding: 0;}
+    body {
+        font-family:Tahoma, Geneva, sans-serif;
+        overflow: hidden;	
+        background:#300a24;
+    }
+    #random {
+        display: block;
+        background: #300a24;
+        z-index:-1;
+    }
+    
+    @keyframes orange {
+        0% { opacity:0.6; }
+        50% { opacity:0; }
+        100% { opacity:0.6 }
+    }
+    
+    @keyframes green {
+        0% { opacity:0; }
+        50% { opacity:0.6; }
+        100% { opacity:0; }
+    }
+    
+    #orange {
+        width:150%;
+        height:100%;
+        position:fixed;
+        top:50%; left:20%;
+    
+        /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#efa22f+0,f2d282+100&1+0,0+55 */
+        background: -moz-radial-gradient(center, ellipse cover,  rgba(239,162,47,1) 0%, rgba(241,188,93,0) 55%, rgba(242,210,130,0) 100%); /* FF3.6-15 */
+        background: -webkit-radial-gradient(center, ellipse cover,  rgba(239,162,47,1) 0%,rgba(241,188,93,0) 55%,rgba(242,210,130,0) 100%); /* Chrome10-25,Safari5.1-6 */
+        background: radial-gradient(ellipse at center,  rgba(239,162,47,1) 0%,rgba(241,188,93,0) 55%,rgba(242,210,130,0) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#efa22f', endColorstr='#00f2d282',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+    
+        animation-name:orange;
+        animation-duration: 10s;
+        animation-delay: 0s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+    }
+    #green {
+        width:150%;
+        height:100%;
+        position:fixed;
+        top:-50%; left:-50%;
+    
+        /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#67ea8e+1,f2d282+100&1+0,0+55 */
+        background: -moz-radial-gradient(center, ellipse cover,  rgba(103,234,142,1) 0%, rgba(103,234,142,0.98) 1%, rgba(179,221,135,0) 55%, rgba(242,210,130,0) 100%); /* FF3.6-15 */
+        background: -webkit-radial-gradient(center, ellipse cover,  rgba(103,234,142,1) 0%,rgba(103,234,142,0.98) 1%,rgba(179,221,135,0) 55%,rgba(242,210,130,0) 100%); /* Chrome10-25,Safari5.1-6 */
+        background: radial-gradient(ellipse at center,  rgba(103,234,142,1) 0%,rgba(103,234,142,0.98) 1%,rgba(179,221,135,0) 55%,rgba(242,210,130,0) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#67ea8e', endColorstr='#00f2d282',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+    
+    
+        animation-name:green;
+        animation-duration: 7s;
+        animation-delay: 0s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+    }
+    </style>
+    
+    </head><body>
+    
+    <div id="orange"></div><div id="green"></div>
+    <canvas id="random" width="1136" height="776"></canvas>
+    
+    <script>
+    window.onload = function(){
+        
+        var canvas = document.getElementById("random");
+        var ctx = canvas.getContext("2d");
+        
+        var W = window.innerWidth, H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+    
+    
+        var ROWS, COLS;
+    
+        var dots = [];
+        var sprites = [];
+        
+        var Dot = class Dot {
+            constructor(x, y, row, col){
+                this.x = x;
+                this.y = y;
+                this.row = row;
+                this.col = col;
+                this.radius = 1;
+                this.color = "#FFFFFF";
+    
+                this.draw();
+            }
+    
+            draw(){
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                //ctx.fillRect(this.x,this.y,1,1);
+            }
+    
+            changeColor(color){
+                this.color = color;
+                this.draw();
+            }
+    
+            changeRadius(radius){
+                this.radius = radius;
+            }
+        };
+    
+        var Sprite = class Sprite {
+    
+            constructor(begin, amount, speed, color, range){
+                this.begin = begin;
+                this.end = begin;
+                this.speed = speed;
+                this.color = color;
+                this.range = range;
+                
+                this.x1 = this.begin.x;
+                this.y1 = this.begin.y;
+                this.x2 = this.begin.x;
+                this.y2 = this.begin.y;
+                
+                this.set();
+                
+                this.amount = amount;
+            }
+    
+            draw(){
+                ctx.beginPath();
+                ctx.moveTo(this.x1, this.y1);
+                ctx.lineTo(this.x2, this.y2);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = this.color; //"#FFFFFF";
+                ctx.stroke();
+            }
+            
+            set() {
+                this.begin = this.end;
+                this.x1 = this.begin.x;
+                this.y1 = this.begin.y;
+                
+                var r = (this.end.row == 0) ? 1 : (this.end.row == ROWS-1) ? -1 : Math.floor(Math.random() * 3) - 1; //(Math.floor(Math.random() * 2) == 0) ? -1 : 1;
+                var c = (this.end.col == 0) ? 1 : (this.end.col == COLS-1) ? -1 : Math.floor(Math.random() * 3) - 1; //(Math.floor(Math.random() * 2) == 0) ? -1 : 1;
+                var i = dotAt(this.end.row + r, this.end.col + c);
+                
+                this.end = dots[i];
+                
+                this.amount = 0;
+            }
+    
+            move(){
+                this.amount += this.speed;
+                
+                var add1 = (this.amount > 1) ? 1 : this.amount;
+                var add2 = (this.amount < this.range) ? 0 : (this.amount > 1) ? this.amount - this.range : add1 - this.range;
+                
+                this.x2 = this.begin.x + (this.end.x - this.begin.x) * add1;
+                this.y2 = this.begin.y + (this.end.y - this.begin.y) * add1;
+                
+                this.x1 = this.begin.x + (this.end.x - this.begin.x) * add2;
+                this.y1 = this.begin.y + (this.end.y - this.begin.y) * add2;
+                
+                this.draw();
+                
+                //when it is inside the next node
+                if(this.amount >= 1 + this.range){
+                    this.set();
+                }
+                //when it arives at the next node
+                else if(this.amount >= 1){
+                    this.end.changeColor(this.color);
+                    this.end.changeRadius(2);
+                }
+                //when it leaves the first node
+                else if(this.amount >= this.range){
+                    this.begin.changeRadius(.5);
+                }
+            }
+        };
+    
+        function randomColor() {
+            var r = Math.round(Math.random()*200 + 55); //must add to 255
+            var g = Math.round(Math.random()*200 + 55);
+            var b = Math.round(Math.random()*200 + 55);
+            var a = (Math.random()*.3)+.7; //must add to 1
+            var rgba = "rgba("+r+", "+g+", "+b+", "+a+")"; 
+            return rgba;
+        }
+    
+        function dotAt(row, col){
+            if(col < 0 || row < 0 || col >= COLS || row >= ROWS)
+                return -1;
+            return col*ROWS + row;
+        }
+        
+        function drawBackground(){
+            ctx.globalCompositeOperation = "source-over";
+            ctx.fillStyle = "rgba(48, 10, 36, .2)";
+            ctx.fillRect(0, 0, W, H);
+        }
+    
+        function drawDots_init(size){
+            var row = 0, col = 0;
+            for(var x = size; x < W-size; x = x+size){
+                row = 0;
+                for(var y = size; y < H-size; y = y+size){
+                    dots.push(new Dot(x,y,row,col));
+                    row++;
+                }
+                col++;
+            }
+            ROWS = row;
+            COLS = col;
+        }
+    
+        function drawDots(){
+            for(var i = 0; i < dots.length; i++){
+                dots[i].draw();
+            }
+        }
+    
+        function drawSprites_init(num){
+            for(var i = 0; i < num; i++){
+                d = Math.floor(Math.random() * dots.length);
+                s = Math.random() * 0.05 + 0.03;
+                r = Math.random() * 0.5 + 0.3;
+                sprites.push(new Sprite(dots[d], Math.random(), s, randomColor(), r));
+            }
+        }
+    
+        function drawSprites(){
+            for(var i = 0; i < sprites.length; i++){
+                sprites[i].move();
+            }
+        }
+    
+        function run() {
+            drawBackground();
+            drawDots();
+            drawSprites();
+        }
+    
+        drawBackground();
+        drawDots_init(30);
+        drawSprites_init(dots.length/2);
+    
+        var playID = setInterval(run,32);
+    }
+    </script>
+    
+    
+    
+    
+    </body></html>
